@@ -237,7 +237,7 @@ unsigned gpion,pinn;
 
     // It uses a linear search!!!
     ptimerpin = timerpins;
-    while( (ptimerpin->timer_channel_loc >= 0) && (ptimerpin->timer_channel_loc != key) ) {
+    while( (ptimerpin->timer_channel_loc >= 0) && (ptimerpin->timer_channel_loc == key) ) {
         ptimerpin++;
     }
     if( ptimerpin->timer_channel_loc != key )
@@ -324,20 +324,18 @@ int rc;
     if( rc < 0 ) return -2;
 
     /* Configure location, i.e., where pins coulde located */
-    timer->ROUTE = (timer->ROUTE&~(_TIMER_ROUTE_LOCATION_MASK))|(location<<_TIMER_ROUTE_LOCATION_SHIFT);
+    //timer->ROUTE = (timer->ROUTE&~(_TIMER_ROUTE_LOCATION_MASK))|(location<<_TIMER_ROUTE_LOCATION_SHIFT);
+    timer->ROUTE = (location<<_TIMER_ROUTE_LOCATION_SHIFT);
 
     /* Configure output pins for output */
     if( params&PWM_PARAMS_ENABLEPIN0 ) {
         PWM_ConfigureOutputPin(timer, 0, location);
-		timer->ROUTE |= TIMER_ROUTE_CC0PEN;
     }
     if( params&PWM_PARAMS_ENABLEPIN1 ) {
         PWM_ConfigureOutputPin(timer, 1, location);
-		timer->ROUTE |= TIMER_ROUTE_CC1PEN;
     }
     if( params&PWM_PARAMS_ENABLEPIN2 ) {
         PWM_ConfigureOutputPin(timer, 2, location);
-		timer->ROUTE |= TIMER_ROUTE_CC2PEN;
     }
 
     /* Reset channel configuration */
@@ -373,6 +371,7 @@ int rc;
 
     /* Configure all specified channels */
     if( params&PWM_PARAMS_ENABLECHANNEL0 ) {
+        timer->ROUTE |= (1<<0);
         timer->CC[0].CTRL =  TIMER_CC_CTRL_ICEVCTRL_RISING
                             |TIMER_CC_CTRL_ICEDGE_RISING
                             |TIMER_CC_CTRL_CMOA_CLEAR
@@ -381,6 +380,7 @@ int rc;
         timer->CC[0].CCVB = 0xFFFF;
     }
     if( params&PWM_PARAMS_ENABLECHANNEL1 ) {
+        timer->ROUTE |= (1<<1);
         timer->CC[1].CTRL =  TIMER_CC_CTRL_ICEVCTRL_RISING
                             |TIMER_CC_CTRL_ICEDGE_RISING
                             |TIMER_CC_CTRL_CMOA_CLEAR
@@ -389,6 +389,7 @@ int rc;
         timer->CC[1].CCVB = 0xFFFF;
     }
     if( params&PWM_PARAMS_ENABLECHANNEL2 ) {
+        timer->ROUTE |= (1<<2);
         timer->CC[2].CTRL =  TIMER_CC_CTRL_ICEVCTRL_RISING
                             |TIMER_CC_CTRL_ICEDGE_RISING
                             |TIMER_CC_CTRL_CMOA_CLEAR
