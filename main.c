@@ -71,6 +71,8 @@ void alteraValorLEDs(float ME, float MD);
 int main(void) {
     //Configure inputs
     GPIO_Init(GPIOD, BIT(0), 0);
+    GPIO_Init(GPIOD, BIT(1), 0);
+    GPIO_Init(GPIOD, BIT(2), 0);
     //Configure Outputs
     GPIO_Init(GPIOD, 0, BIT(7));
     GPIO_Init(GPIOC, 0, BIT(0));
@@ -90,6 +92,8 @@ int main(void) {
     // Configure ADC
     ADC_Init(500000);
     ADC_ConfigChannel(ADC_CH0, 0); //ADC_SINGLECTRL_REF_VDD
+    ADC_ConfigChannel(ADC_CH1, 0); //ADC_SINGLECTRL_REF_
+    ADC_ConfigChannel(ADC_CH2, 0); //ADC_SINGLECTRL_REF
 
     // Configure LED PWM
     PWM_Init(TIMER0,PWM_LOC4,PWM_PARAMS_ENABLECHANNEL1);
@@ -155,18 +159,38 @@ int main(void) {
 }
 
 int andando(float *ME, float *MD){
-    int valueRead = ADC_Read(ADC_CH0);
-    char buffer[50];
+    int valueReadEsq = ADC_Read(ADC_CH0);
+    int valueReadDir = ADC_Read(ADC_CH1);
+    int valueReadFr = ADC_Read(ADC_CH2);
+    char buffer[50], buffer2[50];
 
-    itoa(valueRead, buffer, 10);
+    itoa(valueReadEsq, buffer, 10);
+    strcat(buffer, "-");
+    itoa(valueReadDir, buffer2, 10);
+    strcat(buffer, buffer2);
+
+    //LCD_WriteString(buffer);
+
+    if(valueReadDir>valueReadEsq){
+        *MD = 1.0;
+        //Find ME value between 0.5 and 1
+        float diference = valueReadEsq / valueReadDir;
+        //Convert from 0-1 to 0.5 to 1
+        diference = 0.5 + diference/2.0;
+        *ME = diference;
+
+    } else {
+        *ME = 1.0;
+        //Find ME value between 0.5 and 1
+        float diference = valueReadDir / valueReadEsq;
+        //Convert from 0-1 to 0.5 to 1
+        diference = 0.5 + diference/2.0;
+        *MD = diference;
+    }
+
+    itoa(valueReadFr, buffer, 10);
     LCD_WriteString(buffer);
-
-    //Convert valueRead from range 0-4095 to 0-1
-    float valueNormalized = valueRead/4095.0;
-
-    //Set ME and MD to valueNormalized
-    *ME = valueNormalized;
-    *MD = valueNormalized;
+    
 
     return E_ANDANDO;
 }
